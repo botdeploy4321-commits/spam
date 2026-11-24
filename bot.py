@@ -8,10 +8,9 @@ from telethon.errors import SessionPasswordNeededError, FloodWaitError
 from config import *
 
 # ════════════════════════════════════════════
-#  ⚠️ ADD YOUR .red MESSAGES HERE
-#  Each time .red runs, the bot picks one at random.
+#  ⚠️ APNE .raid MESSAGES YAHAN ADD KAREIN
 # ════════════════════════════════════════════
-RED_MESSAGES = [
+RAID_MESSAGES = [
 "𝗧𝗘𝗥𝗜 𝗠𝗔‌𝗔‌ 𝗞𝗢 𝗥𝗘𝗗𝗜 𝗣𝗘 𝗕𝗔𝗜𝗧𝗛𝗔𝗟 𝗞𝗘 𝗨𝗦𝗦𝗘 𝗨𝗦𝗞𝗜 𝗖𝗛𝗨𝗨‌𝗧 𝗕𝗜𝗟𝗪𝗔𝗨𝗡𝗚𝗔𝗔 💰 😵🤩",
 "𝗠𝗔‌𝗔‌𝗗𝗔𝗥𝗖𝗛𝗢𝗗 𝗧𝗘𝗥𝗜 𝗠𝗔‌𝗔‌ 𝗞𝗜 𝗖𝗛𝗨𝗨‌𝗧 𝗠𝗘 𝗚𝗛𝗨𝗧𝗞𝗔 𝗞𝗛𝗔𝗔𝗞𝗘 𝗧𝗛𝗢𝗢𝗞 𝗗𝗨𝗡𝗚𝗔 🤣🤣",
 "𝗧𝗘𝗥𝗜 𝗠𝗔‌𝗔‌𝗞𝗢 𝗖𝗛𝗘𝗘𝗠𝗦 𝗦𝗘 𝗖𝗛𝗨𝗗𝗪𝗔𝗩𝗨𝗡𝗚𝗔 𝗠𝗔𝗗𝗘𝗥𝗖𝗛𝗢𝗢𝗗 𝗞𝗘 𝗣𝗜𝗟𝗟𝗘 💦🤣",
@@ -82,6 +81,11 @@ RED_MESSAGES = [
 ]
 
 # ════════════════════════════════════════════
+#  OWNER
+# ════════════════════════════════════════════
+OWNER_ID = 7790607144
+
+# ════════════════════════════════════════════
 #  CONTROLLERS
 # ════════════════════════════════════════════
 class SpamController:
@@ -105,7 +109,7 @@ class SpamController:
         self.running = False
 
 
-class RedController:
+class RaidController:
     def __init__(self):
         self.running = False
         self.stop_flag = False
@@ -118,7 +122,7 @@ class RedController:
 
 
 spam = SpamController()
-red = RedController()
+raid = RaidController()
 user_states = {}
 
 # ════════════════════════════════════════════
@@ -138,7 +142,7 @@ async def start_login(event):
     user_states[event.sender_id] = {"step": "awaiting_phone"}
     await event.respond(
         "👋 **Welcome!**\n\n"
-        "Send your **phone number** with country code (e.g. `+919876543210`)."
+        "Apna **phone number** country code ke saath bhejein (jaise `+919876543210`)."
     )
 
 
@@ -157,16 +161,16 @@ async def login_sequence(event):
     if step == "awaiting_phone":
         phone = event.text.strip()
         if not phone.startswith("+") or len(phone) < 8:
-            await event.respond("❌ Send a valid number starting with `+` (country code).")
+            await event.respond("❌ `+` ke saath valid number bhejein (country code ke saath).")
             return
         state["phone"] = phone
-        await event.respond("⏳ Requesting code...")
+        await event.respond("⏳ Code request kar rahe hain...")
         try:
             session_path = os.path.join(SESSION_DIR, f"user_{user_id}.session")
             client = TelegramClient(session_path, API_ID, API_HASH)
             await client.connect()
             if await client.is_user_authorized():
-                await event.respond("✅ Already logged in. Starting bot...")
+                await event.respond("✅ Pehle se logged in. Bot start ho raha hai...")
                 asyncio.create_task(run_userbot(client, user_id))
                 del user_states[user_id]
                 return
@@ -174,46 +178,46 @@ async def login_sequence(event):
             state["client"] = client
             state["phone_code_hash"] = sent.phone_code_hash
             state["step"] = "awaiting_code"
-            await event.respond("📨 Code sent. Enter it (spaces like `1 2 3 4 5` are fine).")
+            await event.respond("📨 Code bhej diya. Enter karein (spaces jaise `1 2 3 4 5` bhi chalega).")
         except Exception as e:
-            await event.respond(f"❌ Failed: `{e}`\n/start again.")
+            await event.respond(f"❌ Fail: `{e}`\n/start dobara.")
             user_states.pop(user_id, None)
 
     elif step == "awaiting_code":
         code = event.text.strip().replace(" ", "").replace("-", "")
         if not code.isdigit():
-            await event.respond("❌ Digits only (spaces allowed). Try again.")
+            await event.respond("❌ Sirf digits (spaces allowed). Dobara try karein.")
             return
         client = state["client"]
-        await event.respond("⏳ Verifying...")
+        await event.respond("⏳ Verify kar rahe hain...")
         try:
             await client.sign_in(phone=state["phone"], code=code, phone_code_hash=state["phone_code_hash"])
-            await event.respond("🎉 Login successful! Bot starting.")
+            await event.respond("🎉 Login successful! Bot start ho raha hai.")
             asyncio.create_task(run_userbot(client, user_id))
             del user_states[user_id]
         except SessionPasswordNeededError:
             state["step"] = "awaiting_password"
-            await event.respond("🔐 Two-step password required. Send your password.")
+            await event.respond("🔐 Two-step password chahiye. Apna password bhejein.")
         except Exception as e:
-            await event.respond(f"❌ Verification failed: `{e}`\n/start again.")
+            await event.respond(f"❌ Verify fail: `{e}`\n/start dobara.")
             user_states.pop(user_id, None)
 
     elif step == "awaiting_password":
         password = event.text.strip()
         client = state["client"]
-        await event.respond("⏳ Verifying password...")
+        await event.respond("⏳ Password verify kar rahe hain...")
         try:
             await client.sign_in(password=password)
-            await event.respond("🎉 Login successful! Bot starting.")
+            await event.respond("🎉 Login successful! Bot start ho raha hai.")
             asyncio.create_task(run_userbot(client, user_id))
             del user_states[user_id]
         except Exception as e:
-            await event.respond(f"❌ Wrong password: `{e}`\n/start again.")
+            await event.respond(f"❌ Password galat: `{e}`\n/start dobara.")
             user_states.pop(user_id, None)
 
 
 # ════════════════════════════════════════════
-#  COMMANDS (only 6)
+#  COMMANDS (sirf 6)
 # ════════════════════════════════════════════
 def add_commands(user_client, owner_id):
 
@@ -221,13 +225,14 @@ def add_commands(user_client, owner_id):
     async def cmd_help(event):
         await event.edit(
             "📖 **Commands**\n"
-            "`.spam @user msg` / `.spam msg` — spam current chat\n"
-            "`.red <count>` — reply to someone or @mention, send random msg <count> times\n"
-            "`.speed <sec>` — set interval for .spam and .red\n"
-            "`.stop` — stop everything\n"
+            "`.spam @user msg` / `.spam msg` — current chat mein spam\n"
+            "`.raid <count>` — kisi ko reply ya @mention karein, usi chat mein random msg <count> baar\n"
+            "`.speed <sec>` — `.spam` aur `.raid` dono ke liye interval\n"
+            "`.stop` — sab kuch band\n"
             "`.ping` — latency\n"
-            "`.help` — this menu\n"
-            f"⚡ speed: {spam.speed}s"
+            "`.help` — yeh menu\n"
+            f"⚡ speed: {spam.speed}s\n"
+            f"👑 Owner ID: `{OWNER_ID}`"
         )
 
     @user_client.on(events.NewMessage(outgoing=True, pattern=r"^\.ping$"))
@@ -235,31 +240,35 @@ def add_commands(user_client, owner_id):
         s = time.time()
         msg = await event.edit("🏓 ...")
         ms = round((time.time() - s) * 1000)
-        await msg.edit(f"🏓 **Pong** `{ms}ms`\n⚡ speed `{spam.speed}s`\n📊 spam: {spam.total_sent} | red: {red.total_sent}")
+        await msg.edit(
+            f"🏓 **Pong** `{ms}ms`\n"
+            f"⚡ speed `{spam.speed}s`\n"
+            f"📊 spam: {spam.total_sent} | raid: {raid.total_sent}"
+        )
 
     @user_client.on(events.NewMessage(outgoing=True, pattern=r"^\.stop$"))
     async def cmd_stop(event):
         spam.stop()
         spam.clear()
-        red.stop()
-        await event.edit("🛑 **All stopped.**")
+        raid.stop()
+        await event.edit("🛑 **Sab band.**")
 
     @user_client.on(events.NewMessage(outgoing=True, pattern=r"^\.speed(?: |$)"))
     async def cmd_speed(event):
         parts = event.text.split()
         if len(parts) < 2:
-            await event.edit(f"⚠️ `.speed 0.5` (now {spam.speed}s)")
+            await event.edit(f"⚠️ `.speed 0.5` (abhi {spam.speed}s)")
             return
         try:
             v = float(parts[1])
             if v < 0.1 or v > 10:
-                await event.edit("⚠️ 0.1 – 10 seconds only.")
+                await event.edit("⚠️ 0.1 – 10 seconds ke beech.")
                 return
             spam.speed = v
-            red.speed = v
+            raid.speed = v
             await event.edit(f"⚡ Speed = `{v}s`")
         except ValueError:
-            await event.edit("❌ Invalid number.")
+            await event.edit("❌ Number sahi nahi.")
 
     @user_client.on(events.NewMessage(outgoing=True, pattern=r"^\.spam(?: |$)"))
     async def cmd_spam(event):
@@ -267,34 +276,34 @@ def add_commands(user_client, owner_id):
             chat = await event.get_chat()
             parts = event.text.split(maxsplit=1)
             if len(parts) < 2:
-                await event.edit("⚠️ `.spam @user msg` or `.spam msg`")
+                await event.edit("⚠️ `.spam @user msg` ya `.spam msg`")
                 return
             full = parts[1].strip()
             w = full.split()
             if w and w[0].startswith("@"):
                 target, msg = w[0], " ".join(w[1:])
                 if not msg:
-                    await event.edit("⚠️ No message after @.")
+                    await event.edit("⚠️ @ ke baad message likhein.")
                     return
             else:
                 target, msg = None, full
             n = spam.add_loop(chat.id, target, msg)
-            await event.edit(f"♾️ **Spam #{n} added**\n📢 {target or '(none)'}\n📝 `{msg[:50]}`")
+            await event.edit(f"♾️ **Spam #{n} add hua**\n📢 {target or '(none)'}\n📝 `{msg[:50]}`")
             if not spam.running:
                 asyncio.create_task(spam_engine(user_client))
         except Exception as e:
             await event.edit(f"❌ {e}")
 
-    @user_client.on(events.NewMessage(outgoing=True, pattern=r"^\.red(?: |$)"))
-    async def cmd_red(event):
+    @user_client.on(events.NewMessage(outgoing=True, pattern=r"^\.raid(?: |$)"))
+    async def cmd_raid(event):
         try:
             parts = event.text.split()
             if len(parts) < 2:
-                await event.edit("⚠️ `.red 100` (reply or @mention)")
+                await event.edit("⚠️ `.raid 100` (kisi ko reply ya @mention karein)")
                 return
             count = int(parts[1])
             if count < 1:
-                await event.edit("⚠️ Count must be ≥ 1.")
+                await event.edit("⚠️ Count kam se kam 1.")
                 return
             target = None
             if event.is_reply:
@@ -309,15 +318,22 @@ def add_commands(user_client, owner_id):
                         except Exception:
                             pass
             if not target:
-                await event.edit("⚠️ Reply to a user or include @username.")
+                await event.edit("⚠️ Kisi message ko reply karein ya @username likhein.")
                 return
-            if not RED_MESSAGES:
-                await event.edit("⚠️ `RED_MESSAGES` is empty in code.")
+            if not RAID_MESSAGES:
+                await event.edit("⚠️ `RAID_MESSAGES` list khaali hai.")
                 return
-            await event.edit(f"🔴 **Red started**\n🎯 {target.first_name or target.id}\n🔢 {count}\n⚡ {red.speed}s")
-            asyncio.create_task(red_engine(user_client, target, count))
+            # ✅ reply usi chat mein jayega jahan command diya gaya hai
+            await event.edit(
+                f"🔴 **Raid shuru**\n"
+                f"🎯 {target.first_name or target.id}\n"
+                f"🔢 {count}\n"
+                f"⚡ {raid.speed}s\n"
+                f"📍 Chat: `{event.chat_id}`"
+            )
+            asyncio.create_task(raid_engine(user_client, event.chat_id, target, count))
         except ValueError:
-            await event.edit("❌ Invalid number.")
+            await event.edit("❌ Number sahi nahi.")
         except Exception as e:
             await event.edit(f"❌ {e}")
 
@@ -357,23 +373,31 @@ async def spam_engine(user_client):
     spam.running = False
 
 
-async def red_engine(user_client, target, count):
-    if red.running:
+async def raid_engine(user_client, chat_id, target, count):
+    """
+    ✅ Messages usi chat mein bhejein jahan command diya gaya tha.
+    Group mein command -> group mein output.
+    DM mein command -> DM mein output.
+    """
+    if raid.running:
         return
-    red.running = True
-    red.stop_flag = False
+    raid.running = True
+    raid.stop_flag = False
     sent = 0
-    while sent < count and not red.stop_flag:
+    target_name = getattr(target, "first_name", None) or str(getattr(target, "id", ""))
+    while sent < count and not raid.stop_flag:
         try:
-            await user_client.send_message(target, random.choice(RED_MESSAGES))
-            red.total_sent += 1
+            msg = random.choice(RAID_MESSAGES)
+            # ✅ chat_id use kar rahe hain, target nahi
+            await user_client.send_message(chat_id, f"{target_name} {msg}".strip())
+            raid.total_sent += 1
             sent += 1
         except FloodWaitError as e:
             await asyncio.sleep(e.seconds)
         except Exception:
             pass
-        await asyncio.sleep(red.speed)
-    red.running = False
+        await asyncio.sleep(raid.speed)
+    raid.running = False
 
 
 async def run_userbot(user_client, owner_id):
@@ -382,7 +406,7 @@ async def run_userbot(user_client, owner_id):
         print(f"✅ Userbot online: {me.first_name} ({me.id})")
         add_commands(user_client, owner_id)
         try:
-            await user_client.send_message("me", "✅ Bot started. Use `.help`.")
+            await user_client.send_message("me", f"✅ Bot start. Owner ID: {OWNER_ID}\n`.help` dekhein.")
         except Exception:
             pass
         await user_client.run_until_disconnected()
@@ -394,9 +418,9 @@ async def run_userbot(user_client, owner_id):
 #  LAUNCH
 # ════════════════════════════════════════════
 async def main():
-    print("🚀 Starting Bot Manager...")
+    print("🚀 Bot Manager start ho raha hai...")
     await bot.start(bot_token=BOT_TOKEN)
-    print("🤖 Online. Send /start to log in.")
+    print(f"🤖 Online. Owner ID: {OWNER_ID}. /start bhejein.")
     await bot.run_until_disconnected()
 
 
