@@ -1,6 +1,5 @@
 # bot.py
 import os
-import glob
 import asyncio
 import time
 import random
@@ -9,12 +8,11 @@ from telethon.errors import SessionPasswordNeededError, FloodWaitError
 from config import *
 
 # ════════════════════════════════════════════
-#  ==== ADD YOUR MESSAGES HERE ====
-#  Fill in the message content to be sent by .red in this list,
-#  the bot will randomly select from them for each send.
+#  ⚠️ ADD YOUR .red MESSAGES HERE
+#  Each time .red runs, the bot picks one at random.
 # ════════════════════════════════════════════
 RED_MESSAGES = [
-    "𝗧𝗘𝗥𝗜 𝗠𝗔‌𝗔‌ 𝗞𝗢 𝗥𝗘𝗗𝗜 𝗣𝗘 𝗕𝗔𝗜𝗧𝗛𝗔𝗟 𝗞𝗘 𝗨𝗦𝗦𝗘 𝗨𝗦𝗞𝗜 𝗖𝗛𝗨𝗨‌𝗧 𝗕𝗜𝗟𝗪𝗔𝗨𝗡𝗚𝗔𝗔 💰 😵🤩",
+"𝗧𝗘𝗥𝗜 𝗠𝗔‌𝗔‌ 𝗞𝗢 𝗥𝗘𝗗𝗜 𝗣𝗘 𝗕𝗔𝗜𝗧𝗛𝗔𝗟 𝗞𝗘 𝗨𝗦𝗦𝗘 𝗨𝗦𝗞𝗜 𝗖𝗛𝗨𝗨‌𝗧 𝗕𝗜𝗟𝗪𝗔𝗨𝗡𝗚𝗔𝗔 💰 😵🤩",
 "𝗠𝗔‌𝗔‌𝗗𝗔𝗥𝗖𝗛𝗢𝗗 𝗧𝗘𝗥𝗜 𝗠𝗔‌𝗔‌ 𝗞𝗜 𝗖𝗛𝗨𝗨‌𝗧 𝗠𝗘 𝗚𝗛𝗨𝗧𝗞𝗔 𝗞𝗛𝗔𝗔𝗞𝗘 𝗧𝗛𝗢𝗢𝗞 𝗗𝗨𝗡𝗚𝗔 🤣🤣",
 "𝗧𝗘𝗥𝗜 𝗠𝗔‌𝗔‌𝗞𝗢 𝗖𝗛𝗘𝗘𝗠𝗦 𝗦𝗘 𝗖𝗛𝗨𝗗𝗪𝗔𝗩𝗨𝗡𝗚𝗔 𝗠𝗔𝗗𝗘𝗥𝗖𝗛𝗢𝗢𝗗 𝗞𝗘 𝗣𝗜𝗟𝗟𝗘 💦🤣",
 "𝗥Æ𝗡𝗗𝗜𝗞𝗘 𝗕𝗔𝗖𝗛𝗛𝗘 𝗧𝗘𝗥𝗜 𝗠𝗔‌𝗔‌𝗞𝗢 𝗖𝗛𝗢𝗗𝗨 𝗖𝗛𝗔𝗟 𝗡𝗜𝗞𝗔𝗟",
@@ -56,7 +54,7 @@ RED_MESSAGES = [
 "𝗔𝗕𝗘 𝗧𝗘𝗥𝗜 𝗕𝗘‌𝗛𝗘𝗡 𝗞𝗢 𝗖𝗛𝗢𝗗𝗨 𝗥Æ𝗡𝗗𝗜𝗞𝗘 𝗣𝗜𝗟𝗟𝗘 𝗞𝗨𝗧𝗧𝗘 𝗞𝗘 𝗖𝗛𝗢𝗗𝗘 😂👻🔥",
 "𝗧𝗘𝗥𝗜 𝗠𝗨𝗠𝗠𝗬 𝗞𝗘 𝗦𝗔𝗔𝗧𝗛 𝗟𝗨𝗗𝗢 𝗞𝗛𝗘𝗟𝗧𝗘 𝗞𝗛𝗘𝗟𝗧𝗘 𝗨𝗦𝗞𝗘 𝗠𝗨𝗛 𝗠𝗘 𝗔𝗣𝗡𝗔 𝗟𝗢𝗗𝗔 𝗗𝗘 𝗗𝗨𝗡𝗚𝗔☝🏻☝🏻😬",
 "𝗧𝗘𝗥𝗜 𝗚𝗙 𝗞𝗢 𝗘𝗧𝗡𝗔 𝗖𝗛𝗢𝗗𝗔 𝗕𝗘‌𝗛𝗘𝗡 𝗞𝗘 𝗟𝗢𝗗𝗘 𝗧𝗘𝗥𝗜 𝗚𝗙 𝗧𝗢 𝗠𝗘𝗥𝗜 𝗥Æ𝗡𝗗𝗜 𝗕𝗔𝗡𝗚𝗔𝗬𝗜 𝗔𝗕𝗕 𝗖𝗛𝗔𝗟 𝗧𝗘𝗥𝗜 𝗠𝗔‌𝗔‌𝗞𝗢 𝗖𝗛𝗢𝗗𝗧𝗔 𝗙𝗜𝗥𝗦𝗘 ♥️💦😆😆😆😆",
-  "𝗧𝗘𝗥𝗜 𝗠𝗔‌𝗔‌ 𝗞𝗜 𝗚𝗔𝗔𝗡𝗗 𝗠𝗘 𝗦𝗔𝗥𝗜𝗬𝗔 𝗗𝗔𝗔𝗟 𝗗𝗨𝗡𝗚𝗔 𝗠𝗔‌𝗔‌𝗗𝗔𝗥𝗖𝗛𝗢𝗗 𝗨𝗦𝗜 𝗦𝗔𝗥𝗜𝗬𝗘 𝗣𝗥 𝗧𝗔𝗡𝗚 𝗞𝗘 𝗕𝗔𝗖𝗛𝗘 𝗣𝗔𝗜𝗗𝗔 𝗛𝗢𝗡𝗚𝗘 😱😱",
+"𝗧𝗘𝗥𝗜 𝗠𝗔‌𝗔‌ 𝗞𝗜 𝗚𝗔𝗔𝗡𝗗 𝗠𝗘 𝗦𝗔𝗥𝗜𝗬𝗔 𝗗𝗔𝗔𝗟 𝗗𝗨𝗡𝗚𝗔 𝗠𝗔‌𝗔‌𝗗𝗔𝗥𝗖𝗛𝗢𝗗 𝗨𝗦𝗜 𝗦𝗔𝗥𝗜𝗬𝗘 𝗣𝗥 𝗧𝗔𝗡𝗚 𝗞𝗘 𝗕𝗔𝗖𝗛𝗘 𝗣𝗔𝗜𝗗𝗔 𝗛𝗢𝗡𝗚𝗘 😱😱",
 "𝗛𝗔𝗛𝗔𝗛𝗔𝗛𝗔 𝗕𝗔𝗖𝗛𝗛𝗘 𝗧𝗘𝗥𝗜 𝗠𝗔‌𝗔‌𝗔𝗞𝗢 𝗖𝗛𝗢𝗗 𝗗𝗜𝗔 𝗡𝗔𝗡𝗚𝗔 𝗞𝗔𝗥𝗞𝗘",
 "2 𝗥𝗨𝗣𝗔𝗬 𝗞𝗜 𝗣𝗘𝗣𝗦𝗜 𝗧𝗘𝗥𝗜 𝗠𝗨𝗠𝗠𝗬 𝗦𝗔𝗕𝗦𝗘 𝗦𝗘𝗫𝗬 💋💦",
 "𝗧𝗘𝗥𝗜 𝗠𝗔‌𝗔‌ 𝗞𝗜 𝗖𝗛𝗨𝗨‌𝗧 𝗠𝗘 𝗖𝗛𝗔𝗡𝗚𝗘𝗦 𝗖𝗢𝗠𝗠𝗜𝗧 𝗞𝗥𝗨𝗚𝗔 𝗙𝗜𝗥 𝗧𝗘𝗥𝗜 𝗕𝗛𝗘𝗘𝗡 𝗞𝗜 𝗖𝗛𝗨𝗨‌𝗧 𝗔𝗨𝗧𝗢𝗠𝗔𝗧𝗜𝗖𝗔𝗟𝗟𝗬 𝗨𝗣𝗗𝗔𝗧𝗘 𝗛𝗢𝗝𝗔𝗔𝗬𝗘𝗚𝗜🤖🙏🤔",
@@ -84,9 +82,8 @@ RED_MESSAGES = [
 ]
 
 # ════════════════════════════════════════════
-#  Global Controllers
+#  CONTROLLERS
 # ════════════════════════════════════════════
-
 class SpamController:
     def __init__(self):
         self.loops = []
@@ -97,12 +94,7 @@ class SpamController:
         self.start_time = None
 
     def add_loop(self, chat_id, target, message):
-        self.loops.append({
-            'chat_id': chat_id,
-            'target': target,
-            'message': message,
-            'count': 0
-        })
+        self.loops.append({'chat_id': chat_id, 'target': target, 'message': message, 'count': 0})
         return len(self.loops)
 
     def clear(self):
@@ -112,28 +104,13 @@ class SpamController:
         self.stop_flag = True
         self.running = False
 
-    def format_uptime(self):
-        if not self.start_time:
-            return "0s"
-        seconds = int(time.time() - self.start_time)
-        minutes, seconds = divmod(seconds, 60)
-        hours, minutes = divmod(minutes, 60)
-        days, hours = divmod(hours, 24)
-        if days > 0:
-            return f"{days}d {hours}h {minutes}m"
-        elif hours > 0:
-            return f"{hours}h {minutes}m {seconds}s"
-        elif minutes > 0:
-            return f"{minutes}m {seconds}s"
-        return f"{seconds}s"
-
 
 class RedController:
     def __init__(self):
         self.running = False
         self.stop_flag = False
         self.total_sent = 0
-        self.speed = 1.0  # Shared with spam
+        self.speed = 1.0
 
     def stop(self):
         self.stop_flag = True
@@ -144,11 +121,9 @@ spam = SpamController()
 red = RedController()
 user_states = {}
 
-
 # ════════════════════════════════════════════
-#  Bot Manager (login entry point)
+#  BOT MANAGER (login entry)
 # ════════════════════════════════════════════
-
 if not os.path.exists(SESSION_DIR):
     os.makedirs(SESSION_DIR)
 
@@ -158,20 +133,17 @@ bot = TelegramClient(bot_session_path, API_ID, API_HASH, timeout=30)
 
 @bot.on(events.NewMessage(pattern=r"^\/start$"))
 async def start_login(event):
-    """Initiate login flow, only request phone number"""
     if not event.is_private:
         return
     user_states[event.sender_id] = {"step": "awaiting_phone"}
     await event.respond(
         "👋 **Welcome!**\n\n"
-        "Please send your **phone number** (must include country code, e.g., `+919876543210`).\n\n"
-        "⚠️ After sending the phone number, the login process will begin."
+        "Send your **phone number** with country code (e.g. `+919876543210`)."
     )
 
 
 @bot.on(events.NewMessage)
 async def login_sequence(event):
-    """Handle phone number → verification code → 2FA password"""
     if not event.is_private or event.text.startswith("/start"):
         return
 
@@ -182,301 +154,218 @@ async def login_sequence(event):
 
     step = state["step"]
 
-    # --- Step 1: Receive phone number ---
     if step == "awaiting_phone":
         phone = event.text.strip()
         if not phone.startswith("+") or len(phone) < 8:
-            await event.respond("❌ Phone number format is incorrect. Please send a number including country code (starting with `+`).")
+            await event.respond("❌ Send a valid number starting with `+` (country code).")
             return
-
         state["phone"] = phone
-        await event.respond("⏳ *Connecting to Telegram and requesting verification code...*")
-
+        await event.respond("⏳ Requesting code...")
         try:
             session_path = os.path.join(SESSION_DIR, f"user_{user_id}.session")
             client = TelegramClient(session_path, API_ID, API_HASH)
             await client.connect()
-
             if await client.is_user_authorized():
-                await event.respond("✅ You are already logged in. Starting bot...")
+                await event.respond("✅ Already logged in. Starting bot...")
                 asyncio.create_task(run_userbot(client, user_id))
                 del user_states[user_id]
                 return
-
-            # Send verification code request
             sent = await client.send_code_request(phone)
             state["client"] = client
             state["phone_code_hash"] = sent.phone_code_hash
             state["step"] = "awaiting_code"
-
-            await event.respond(
-                "📨 **Verification code sent!**\n\n"
-                "Please enter the code you received.\n"
-                "✅ **Supports input with spaces**, e.g., `1 2 3 4 5`"
-            )
+            await event.respond("📨 Code sent. Enter it (spaces like `1 2 3 4 5` are fine).")
         except Exception as e:
-            await event.respond(f"❌ Failed to send verification code: `{e}`\nPlease /start again.")
-            if user_id in user_states:
-                del user_states[user_id]
+            await event.respond(f"❌ Failed: `{e}`\n/start again.")
+            user_states.pop(user_id, None)
 
-    # --- Step 2: Receive verification code (supports spaces) ---
     elif step == "awaiting_code":
-        raw = event.text.strip()
-        code = raw.replace(" ", "").replace("-", "")
+        code = event.text.strip().replace(" ", "").replace("-", "")
         if not code.isdigit():
-            await event.respond("❌ Verification code should contain only digits (spaces allowed). Please try again.")
+            await event.respond("❌ Digits only (spaces allowed). Try again.")
             return
-
         client = state["client"]
-        await event.respond("⏳ *Verifying...*")
-
+        await event.respond("⏳ Verifying...")
         try:
-            await client.sign_in(
-                phone=state["phone"],
-                code=code,
-                phone_code_hash=state["phone_code_hash"]
-            )
-            await event.respond("🎉 **Login successful!** The bot is now starting.")
+            await client.sign_in(phone=state["phone"], code=code, phone_code_hash=state["phone_code_hash"])
+            await event.respond("🎉 Login successful! Bot starting.")
             asyncio.create_task(run_userbot(client, user_id))
             del user_states[user_id]
         except SessionPasswordNeededError:
             state["step"] = "awaiting_password"
-            await event.respond("🔐 **Two-step verification password required.** Please send your password.")
+            await event.respond("🔐 Two-step password required. Send your password.")
         except Exception as e:
-            await event.respond(f"❌ Verification failed: `{e}`\nPlease /start again.")
-            del user_states[user_id]
+            await event.respond(f"❌ Verification failed: `{e}`\n/start again.")
+            user_states.pop(user_id, None)
 
-    # --- Step 3: Receive 2FA password ---
     elif step == "awaiting_password":
         password = event.text.strip()
         client = state["client"]
-        await event.respond("⏳ *Verifying password...*")
-
+        await event.respond("⏳ Verifying password...")
         try:
             await client.sign_in(password=password)
-            await event.respond("🎉 **Login successful!** The bot is now starting.")
+            await event.respond("🎉 Login successful! Bot starting.")
             asyncio.create_task(run_userbot(client, user_id))
             del user_states[user_id]
         except Exception as e:
-            await event.respond(f"❌ Incorrect password: `{e}`\nPlease /start again.")
-            del user_states[user_id]
+            await event.respond(f"❌ Wrong password: `{e}`\n/start again.")
+            user_states.pop(user_id, None)
 
 
 # ════════════════════════════════════════════
-#  Userbot Commands (only 6 commands)
+#  COMMANDS (only 6)
 # ════════════════════════════════════════════
-
 def add_commands(user_client, owner_id):
-    """Register commands for the logged-in userbot"""
 
-    # --- .help ---
     @user_client.on(events.NewMessage(outgoing=True, pattern=r"^\.help$"))
     async def cmd_help(event):
         await event.edit(
-            "📖 **Available Commands**\n"
-            "━━━━━━━━━━━━━━━━━━\n"
-            "`.spam @user message` — Spam in current chat\n"
-            "`.spam message` — Spam without tagging\n"
-            "`.red <count>` — Reply to a user or @mention them, then send a random message <count> times\n"
-            "`.speed <seconds>` — Set sending interval (effective for .spam and .red)\n"
-            "`.stop` — Stop all running tasks\n"
-            "`.ping` — Check response latency\n"
-            "`.help` — Show this help\n"
-            "━━━━━━━━━━━━━━━━━━\n"
-            f"📝 Current speed: {spam.speed}s"
+            "📖 **Commands**\n"
+            "`.spam @user msg` / `.spam msg` — spam current chat\n"
+            "`.red <count>` — reply to someone or @mention, send random msg <count> times\n"
+            "`.speed <sec>` — set interval for .spam and .red\n"
+            "`.stop` — stop everything\n"
+            "`.ping` — latency\n"
+            "`.help` — this menu\n"
+            f"⚡ speed: {spam.speed}s"
         )
 
-    # --- .ping ---
     @user_client.on(events.NewMessage(outgoing=True, pattern=r"^\.ping$"))
     async def cmd_ping(event):
-        start = time.time()
-        msg = await event.edit("🏓 Pinging...")
-        end = time.time()
-        latency = round((end - start) * 1000)
-        await msg.edit(
-            f"🏓 **Pong!**\n"
-            f"📡 Latency: `{latency}ms`\n"
-            f"⚡ Speed: `{spam.speed}s`\n"
-            f"📊 Total sent (spam): `{spam.total_sent}`\n"
-            f"📊 Total sent (red): `{red.total_sent}`"
-        )
+        s = time.time()
+        msg = await event.edit("🏓 ...")
+        ms = round((time.time() - s) * 1000)
+        await msg.edit(f"🏓 **Pong** `{ms}ms`\n⚡ speed `{spam.speed}s`\n📊 spam: {spam.total_sent} | red: {red.total_sent}")
 
-    # --- .stop ---
     @user_client.on(events.NewMessage(outgoing=True, pattern=r"^\.stop$"))
     async def cmd_stop(event):
         spam.stop()
         spam.clear()
         red.stop()
-        await event.edit("🛑 **All tasks stopped.**")
+        await event.edit("🛑 **All stopped.**")
 
-    # --- .speed ---
     @user_client.on(events.NewMessage(outgoing=True, pattern=r"^\.speed(?: |$)"))
     async def cmd_speed(event):
+        parts = event.text.split()
+        if len(parts) < 2:
+            await event.edit(f"⚠️ `.speed 0.5` (now {spam.speed}s)")
+            return
         try:
-            parts = event.text.split()
-            if len(parts) < 2:
-                await event.edit(f"⚠️ Usage: `.speed 0.5` (current: {spam.speed}s)")
+            v = float(parts[1])
+            if v < 0.1 or v > 10:
+                await event.edit("⚠️ 0.1 – 10 seconds only.")
                 return
-            speed = float(parts[1])
-            if speed < 0.1:
-                await event.edit("⚠️ Minimum speed is 0.1 seconds.")
-                return
-            if speed > 10:
-                await event.edit("⚠️ Maximum speed is 10 seconds.")
-                return
-            spam.speed = speed
-            red.speed = speed  # Sync
-            await event.edit(f"⚡ Speed set to `{speed}s` (effective for both .spam and .red).")
+            spam.speed = v
+            red.speed = v
+            await event.edit(f"⚡ Speed = `{v}s`")
         except ValueError:
-            await event.edit("❌ Please enter a valid number.")
+            await event.edit("❌ Invalid number.")
 
-    # --- .spam (existing functionality preserved) ---
     @user_client.on(events.NewMessage(outgoing=True, pattern=r"^\.spam(?: |$)"))
     async def cmd_spam(event):
         try:
             chat = await event.get_chat()
-            chat_id = chat.id
             parts = event.text.split(maxsplit=1)
             if len(parts) < 2:
-                await event.edit("⚠️ Usage: `.spam @user message` or `.spam message`")
+                await event.edit("⚠️ `.spam @user msg` or `.spam msg`")
                 return
-
             full = parts[1].strip()
-            words = full.split()
-            if words and words[0].startswith("@"):
-                target = words[0]
-                message = " ".join(words[1:])
-                if not message:
-                    await event.edit("⚠️ No message content after @username.")
+            w = full.split()
+            if w and w[0].startswith("@"):
+                target, msg = w[0], " ".join(w[1:])
+                if not msg:
+                    await event.edit("⚠️ No message after @.")
                     return
             else:
-                target = None
-                message = full
-
-            loop_id = spam.add_loop(chat_id, target, message)
-            await event.edit(
-                f"♾️ **Spam task #{loop_id} added.**\n"
-                f"📢 Target: {target or '(none)'}\n"
-                f"📝 Message: `{message[:50]}...`\n"
-                f"⚡ Speed: {spam.speed}s\n"
-                f"📊 Total tasks: {len(spam.loops)}"
-            )
-
+                target, msg = None, full
+            n = spam.add_loop(chat.id, target, msg)
+            await event.edit(f"♾️ **Spam #{n} added**\n📢 {target or '(none)'}\n📝 `{msg[:50]}`")
             if not spam.running:
                 asyncio.create_task(spam_engine(user_client))
         except Exception as e:
-            await event.edit(f"❌ Error: {e}")
+            await event.edit(f"❌ {e}")
 
-    # --- .red <count> ---
     @user_client.on(events.NewMessage(outgoing=True, pattern=r"^\.red(?: |$)"))
     async def cmd_red(event):
         try:
             parts = event.text.split()
             if len(parts) < 2:
-                await event.edit("⚠️ Usage: `.red 100` (reply to a user or @mention them)")
+                await event.edit("⚠️ `.red 100` (reply or @mention)")
                 return
-
             count = int(parts[1])
             if count < 1:
-                await event.edit("⚠️ Count must be at least 1.")
+                await event.edit("⚠️ Count must be ≥ 1.")
                 return
-
-            # Determine target user
-            target_user = None
-
-            # Method 1: Reply mode
+            target = None
             if event.is_reply:
-                reply_msg = await event.get_reply_message()
-                target_user = await user_client.get_entity(reply_msg.sender_id)
-
-            # Method 2: @mention in command
+                r = await event.get_reply_message()
+                target = await user_client.get_entity(r.sender_id)
             else:
-                for word in parts:
-                    if word.startswith("@") and len(word) > 1:
+                for p in parts:
+                    if p.startswith("@") and len(p) > 1:
                         try:
-                            target_user = await user_client.get_entity(word)
+                            target = await user_client.get_entity(p)
                             break
                         except Exception:
                             pass
-
-            if not target_user:
-                await event.edit("⚠️ Please **reply to a user's message** or include an **@username** in the command.")
+            if not target:
+                await event.edit("⚠️ Reply to a user or include @username.")
                 return
-
-            # Check if there are messages
             if not RED_MESSAGES:
-                await event.edit("⚠️ `RED_MESSAGES` list is empty. Please add messages in the code first.")
+                await event.edit("⚠️ `RED_MESSAGES` is empty in code.")
                 return
-
-            await event.edit(
-                f"🔴 **Red task started.**\n"
-                f"🎯 Target: {target_user.first_name or target_user.id}\n"
-                f"🔢 Count: {count}\n"
-                f"⚡ Speed: {red.speed}s\n"
-                f"📝 Random messages will be selected from {len(RED_MESSAGES)} entries."
-            )
-
-            asyncio.create_task(red_engine(user_client, target_user, count))
+            await event.edit(f"🔴 **Red started**\n🎯 {target.first_name or target.id}\n🔢 {count}\n⚡ {red.speed}s")
+            asyncio.create_task(red_engine(user_client, target, count))
         except ValueError:
-            await event.edit("❌ Please enter a valid number.")
+            await event.edit("❌ Invalid number.")
         except Exception as e:
-            await event.edit(f"❌ Error: {e}")
+            await event.edit(f"❌ {e}")
 
 
 # ════════════════════════════════════════════
-#  Execution Engines
+#  ENGINES
 # ════════════════════════════════════════════
-
 async def spam_engine(user_client):
-    """Preserve original .spam logic"""
     if spam.running:
         return
     spam.running = True
     spam.stop_flag = False
     spam.start_time = time.time()
-    loop_index = 0
-
+    i = 0
     while spam.running and not spam.stop_flag:
         try:
             if not spam.loops:
                 await asyncio.sleep(1)
                 continue
-            if loop_index >= len(spam.loops):
-                loop_index = 0
-
-            current = spam.loops[loop_index]
-            final = f"{current['target']} {current['message']}" if current["target"] else current["message"]
-
+            if i >= len(spam.loops):
+                i = 0
+            cur = spam.loops[i]
+            final = f"{cur['target']} {cur['message']}" if cur["target"] else cur["message"]
             try:
-                await user_client.send_message(current["chat_id"], final)
+                await user_client.send_message(cur["chat_id"], final)
                 spam.total_sent += 1
-                current["count"] += 1
+                cur["count"] += 1
             except FloodWaitError as e:
                 await asyncio.sleep(e.seconds)
                 continue
             except Exception:
                 pass
-
-            loop_index += 1
+            i += 1
             await asyncio.sleep(spam.speed)
         except Exception:
             await asyncio.sleep(1)
-
     spam.running = False
 
 
-async def red_engine(user_client, target_user, count):
-    """Send <count> random messages to the specified user"""
+async def red_engine(user_client, target, count):
     if red.running:
         return
     red.running = True
     red.stop_flag = False
-
     sent = 0
     while sent < count and not red.stop_flag:
         try:
-            msg = random.choice(RED_MESSAGES)
-            await user_client.send_message(target_user, msg)
+            await user_client.send_message(target, random.choice(RED_MESSAGES))
             red.total_sent += 1
             sent += 1
         except FloodWaitError as e:
@@ -484,37 +373,30 @@ async def red_engine(user_client, target_user, count):
         except Exception:
             pass
         await asyncio.sleep(red.speed)
-
     red.running = False
 
 
 async def run_userbot(user_client, owner_id):
-    """After login is complete, register commands and keep running"""
     try:
         me = await user_client.get_me()
-        print(f"✅ Userbot online: {me.first_name} (ID: {me.id})")
-
+        print(f"✅ Userbot online: {me.first_name} ({me.id})")
         add_commands(user_client, owner_id)
-
-        # Send a confirmation message to Saved Messages
         try:
-            await user_client.send_message("me", "✅ Bot started. Commands are ready. Use .help to view commands.")
+            await user_client.send_message("me", "✅ Bot started. Use `.help`.")
         except Exception:
             pass
-
         await user_client.run_until_disconnected()
     except Exception as e:
         print(f"❌ Userbot error: {e}")
 
 
 # ════════════════════════════════════════════
-#  Auto-reconnect & Launch
+#  LAUNCH
 # ════════════════════════════════════════════
-
 async def main():
     print("🚀 Starting Bot Manager...")
     await bot.start(bot_token=BOT_TOKEN)
-    print("🤖 Control bot online. Send /start to begin login.")
+    print("🤖 Online. Send /start to log in.")
     await bot.run_until_disconnected()
 
 
