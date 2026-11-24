@@ -1,14 +1,19 @@
 # config.py
+import os
+from dotenv import load_dotenv
 
-# ==== Telegram API Credentials (required, apply at my.telegram.org) ====
-API_ID = 1234567                    # Replace with your api_id
-API_HASH = "your_api_hash_here"     # Replace with your api_hash
+# Load .env file
+load_dotenv()
 
-# ==== Bot Token (for the control bot, get from @BotFather) ====
-BOT_TOKEN = "your_bot_token_here"
+# ==== Telegram API Credentials ====
+API_ID = int(os.getenv("API_ID"))
+API_HASH = os.getenv("API_HASH")
 
-# ==== Owner Info (optional, for display) ====
-OWNER_NAME = "YourName"
+# ==== Bot Token ====
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+# ==== Owner Info ====
+OWNER_NAME = os.getenv("OWNER_NAME", "Unknown")
 
 # ==== Session Storage Directory ====
-SESSION_DIR = "sessions"
+SESSION_DIR = os.getenv("SESSION_DIR", "sessions")
